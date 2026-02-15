@@ -31,7 +31,7 @@ export default function App() {
     try {
       // 1. 株価指数 (Demo)
       const indices = [
-        { id: 'n225', name: ui.nikkei, symbol: 'NI225', base: 57000, url: 'https://www.google.com/finance/quote/NI225:INDEXDJX' },
+        { id: 'n225', name: ui.nikkei, symbol: 'NI225', base: 57000, url: 'https://www.google.com/finance/quote/NI225:INDEXNIKKEI' },
         { id: 'topix', name: ui.topix, symbol: 'TOPIX', base: 3950, url: 'https://www.google.com/finance/quote/TOPIX:INDEXTvSE' },
         { id: 'spx', name: 'S&P 500', symbol: '.INX', base: 8200, url: 'https://www.google.com/finance/quote/.INX:INDEXSP' },
         { id: 'nas', name: 'NASDAQ', symbol: '.IXIC', base: 26500, url: 'https://www.google.com/finance/quote/.IXIC:INDEXNASDAQ' },
@@ -184,4 +184,5 @@ export default function App() {
       </div>
     </div>
   );
+
 }
