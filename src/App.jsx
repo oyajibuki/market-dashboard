@@ -38,7 +38,7 @@ export default function App() {
         { id: 'sen', name: 'SENSEX', symbol: 'SENSEX', base: 70000, url: 'https://www.google.com/finance/quote/SENSEX:INDEXBOM' },
         { id: 'sh', name: ui.shanghai, symbol: '000001', base: 3000, url: 'https://www.google.com/finance/quote/000001:SHA' },
         // オルカン(eMAXIS Slim)の投資信託ページへ
-        { id: 'all', name: ui.acwi, symbol: 'M10JAPAN', base: 24000, url: 'https://www.google.com/finance/quote/0331418A:ITOT' }
+        { id: 'all', name: ui.acwi, symbol: 'M10JAPAN', base: 24000, url: 'https://www.google.com/finance/quote/2559:TYO' }
       ];
       setStockData(indices.map(idx => ({
         ...idx,
@@ -200,3 +200,4 @@ export default function App() {
     </div>
   );
 }
+
