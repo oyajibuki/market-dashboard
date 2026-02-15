@@ -52,10 +52,10 @@ export default function App() {
       const exRes = await fetch('https://open.er-api.com/v6/latest/USD').catch(() => null);
       if (exRes?.ok) setExchangeRates(await exRes.json());
 
-      // 4. 天気
+      // 4. 天気 (URLを確実に開く形式に修正)
       const locations = [
-        { name: ui.tokyo, lat: 35.6895, lon: 139.6917, url: 'https://open-meteo.com/en/forecast?latitude=35.6895&longitude=139.6917&timezone=Asia%2FTokyo' },
-        { name: ui.asagiri, lat: 35.4211, lon: 138.5911, url: 'https://open-meteo.com/en/forecast?latitude=35.4211&longitude=138.5911&timezone=Asia%2FTokyo' }
+        { name: ui.tokyo, lat: 35.6895, lon: 139.6917, url: 'https://open-meteo.com/en/forecast?latitude=35.6895&longitude=139.6917' },
+        { name: ui.asagiri, lat: 35.4211, lon: 138.5911, url: 'https://open-meteo.com/en/forecast?latitude=35.4211&longitude=138.5911' }
       ];
       
       const wResults = await Promise.all(locations.map(async loc => {
@@ -110,7 +110,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* 1. 株価指数 */}
         <div className="mb-12">
           <h2 className="text-indigo-400 font-orbitron mb-6 flex items-center gap-2 tracking-widest text-sm">
             <Globe size={18} /> GLOBAL INDICES
@@ -133,7 +132,6 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 4. 天気 */}
           <div className="space-y-4">
             <h2 className="text-orange-400 font-orbitron text-sm flex items-center gap-2"><Cloud size={18} /> WEATHER</h2>
             {weatherData.map((w, i) => (
@@ -150,7 +148,6 @@ export default function App() {
             ))}
           </div>
 
-          {/* 2. 仮想通貨 */}
           <div className="lg:col-span-2">
             <h2 className="text-cyan-400 font-orbitron text-sm flex items-center gap-2 mb-4"><Activity size={18} /> CRYPTO</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -170,7 +167,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* 3. 為替 */}
         {exchangeRates && (
           <div className="mt-12 glass p-8 rounded-2xl border-t-2 border-t-emerald-500/30">
             <h2 className="text-emerald-400 font-orbitron text-sm mb-6 flex items-center gap-2"><DollarSign size={18} /> EXCHANGE RATES (JPY BASE)</h2>
