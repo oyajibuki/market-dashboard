@@ -61,16 +61,26 @@ export default function App() {
       const exRes = await fetch('https://open.er-api.com/v6/latest/USD').catch(() => null);
       if (exRes?.ok) setExchangeRates(await exRes.json());
 
-      // 4. 天気 (リンク用URLを追加)
-      const locations = [
-        { name: ui.tokyo, lat: 35.67, lon: 139.65, url: 'https://open-meteo.com/en/forecast?latitude=35.67&longitude=139.65' },
-        { name: ui.asagiri, lat: 35.42, lon: 138.59, url: 'https://open-meteo.com/en/forecast?latitude=35.42&longitude=138.59' }
-      ];
-      const wResults = await Promise.all(locations.map(async loc => {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weathercode&timezone=Asia/Tokyo`).catch(() => null);
-        return r?.ok ? { ...(await r.json()), locationName: loc.name, infoUrl: loc.url } : null;
-      }));
-      setWeatherData(wResults.filter(Boolean));
+// 4. 天気 (リンクとデータの取得を修正)
+const locations = [
+  { name: ui.tokyo, lat: 35.6895, lon: 139.6917, url: 'https://open-meteo.com/en/forecast?latitude=35.6895&longitude=139.6917&timezone=Asia%2FTokyo' },
+  { name: ui.asagiri, lat: 35.4211, lon: 138.5911, url: 'https://open-meteo.com/en/forecast?latitude=35.4211&longitude=138.5911&timezone=Asia%2FTokyo' }
+];
+
+const wResults = await Promise.all(locations.map(async loc => {
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code&timezone=Asia/Tokyo`).catch(() => null);
+  if (r?.ok) {
+    const data = await r.json();
+    return {
+      temp: data.current.temperature_2m, // 小数点以下も正しく取得
+      code: data.current.weather_code,  // weather_code に修正
+      locationName: loc.name,
+      infoUrl: loc.url
+    };
+  }
+  return null;
+}));
+setWeatherData(wResults.filter(Boolean));
 
     } catch (e) {
       console.error(e);
@@ -200,4 +210,5 @@ export default function App() {
     </div>
   );
 }
+
 
