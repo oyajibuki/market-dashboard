@@ -10,12 +10,11 @@ export default function App() {
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  // 文字化け対策不要：UTF-8で保存
   const ui = {
     nikkei: "日経平均",
     topix: "TOPIX",
     shanghai: "上海総合",
-    acwi: "全世界株",
+    acwi: "全世界株(オルカン)",
     weather_sunny: "晴れ",
     weather_cloudy: "曇り",
     weather_rainy: "雨",
@@ -29,16 +28,17 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      // 1. 株価指数 (Demo)
+      // 1. 株価指数 (全世界株をオルカンのGoogle Financeリンクに修正)
       const indices = [
-        { id: 'n225', name: ui.nikkei, symbol: 'NI225', base: 57000, url: 'https://www.google.com/finance/quote/NI225:INDEXNIKKEI' },
-        { id: 'topix', name: ui.topix, symbol: 'TOPIX', base: 3950, url: 'https://www.google.com/finance/quote/TOPIX:INDEXTOPIX' },
-        { id: 'spx', name: 'S&P 500', symbol: '.INX', base: 8200, url: 'https://www.google.com/finance/quote/.INX:INDEXSP' },
-        { id: 'nas', name: 'NASDAQ', symbol: '.IXIC', base: 26500, url: 'https://www.google.com/finance/quote/.IXIC:INDEXNASDAQ' },
-        { id: 'ftse', name: 'FTSE 100', symbol: 'UKX', base: 9200, url: 'https://www.google.com/finance/quote/UKX:INDEXFTSE' },
-        { id: 'sen', name: 'SENSEX', symbol: 'SENSEX', base: 105000, url: 'https://www.google.com/finance/quote/SENSEX:INDEXBOM' },
-        { id: 'sh', name: ui.shanghai, symbol: '000001', base: 4100, url: 'https://www.google.com/finance/quote/000001:SHA' },
-        { id: 'all', name: ui.acwi, symbol: 'ACWI', base: 145, url: 'https://www.google.com/finance/quote/ACWI:NASDAQ' }
+        { id: 'n225', name: ui.nikkei, symbol: 'NI225', base: 38000, url: 'https://www.google.com/finance/quote/NI225:INDEXDJX' },
+        { id: 'topix', name: ui.topix, symbol: 'TOPIX', base: 2600, url: 'https://www.google.com/finance/quote/TOPIX:INDEXTvSE' },
+        { id: 'spx', name: 'S&P 500', symbol: '.INX', base: 5000, url: 'https://www.google.com/finance/quote/.INX:INDEXSP' },
+        { id: 'nas', name: 'NASDAQ', symbol: '.IXIC', base: 16000, url: 'https://www.google.com/finance/quote/.IXIC:INDEXNASDAQ' },
+        { id: 'ftse', name: 'FTSE 100', symbol: 'UKX', base: 8000, url: 'https://www.google.com/finance/quote/UKX:INDEXFTSE' },
+        { id: 'sen', name: 'SENSEX', symbol: 'SENSEX', base: 70000, url: 'https://www.google.com/finance/quote/SENSEX:INDEXBOM' },
+        { id: 'sh', name: ui.shanghai, symbol: '000001', base: 3000, url: 'https://www.google.com/finance/quote/000001:SHA' },
+        // オルカン(eMAXIS Slim)の投資信託ページへ
+        { id: 'all', name: ui.acwi, symbol: 'M10JAPAN', base: 24000, url: 'https://www.google.com/finance/quote/0331418A:ITOT' }
       ];
       setStockData(indices.map(idx => ({
         ...idx,
@@ -61,17 +61,20 @@ export default function App() {
       const exRes = await fetch('https://open.er-api.com/v6/latest/USD').catch(() => null);
       if (exRes?.ok) setExchangeRates(await exRes.json());
 
-      // 4. 天気
-      const locations = [{ name: ui.tokyo, lat: 35.67, lon: 139.65 }, { name: ui.asagiri, lat: 35.42, lon: 138.59 }];
+      // 4. 天気 (リンク用URLを追加)
+      const locations = [
+        { name: ui.tokyo, lat: 35.67, lon: 139.65, url: 'https://open-meteo.com/en/forecast?latitude=35.67&longitude=139.65' },
+        { name: ui.asagiri, lat: 35.42, lon: 138.59, url: 'https://open-meteo.com/en/forecast?latitude=35.42&longitude=138.59' }
+      ];
       const wResults = await Promise.all(locations.map(async loc => {
         const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weathercode&timezone=Asia/Tokyo`).catch(() => null);
-        return r?.ok ? { ...(await r.json()), locationName: loc.name } : null;
+        return r?.ok ? { ...(await r.json()), locationName: loc.name, infoUrl: loc.url } : null;
       }));
       setWeatherData(wResults.filter(Boolean));
 
     } catch (e) {
       console.error(e);
-      setError("Failed to fetch some data. Retrying...");
+      setError("Failed to fetch data.");
     }
     setLastUpdate(new Date());
     setLoading(false);
@@ -105,7 +108,7 @@ export default function App() {
           <div className="flex justify-center items-center gap-4 text-[10px] text-cyan-400/50">
             <span className="flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> {ui.live}</span>
             <span>{ui.updated}{lastUpdate.toLocaleTimeString()}</span>
-            {error && <span className="text-red-400 font-bold">{error}</span>}
+            {error && <span className="text-red-400">{error}</span>}
             <button onClick={fetchAllData} className="hover:text-white"><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /></button>
           </div>
         </header>
@@ -133,17 +136,20 @@ export default function App() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* 天気 */}
+          {/* 天気（リンク追加） */}
           <div className="space-y-4">
             <h2 className="text-orange-400 font-orbitron text-sm flex items-center gap-2"><Cloud size={18} /> WEATHER</h2>
             {weatherData.map((w, i) => (
-              <div key={i} className="glass p-6 rounded-2xl flex justify-between items-center">
+              <a key={i} href={w.infoUrl} target="_blank" rel="noopener noreferrer" className="glass p-6 rounded-2xl flex justify-between items-center hover:bg-slate-800/50 transition-colors block">
                 <div>
                   <div className="text-[10px] text-slate-500 mb-1 flex items-center gap-1"><MapPin size={10} /> {w.locationName}</div>
                   <div className="text-4xl font-bold font-orbitron">{w.current.temperature_2m}{'\u00b0'}C</div>
                 </div>
-                {getWeatherIcon(w.current.weathercode)}
-              </div>
+                <div className="flex flex-col items-center gap-2">
+                  {getWeatherIcon(w.current.weathercode)}
+                  <ExternalLink size={10} className="text-slate-600" />
+                </div>
+              </a>
             ))}
           </div>
 
@@ -167,16 +173,25 @@ export default function App() {
           </div>
         </div>
 
-        {/* 為替 */}
+        {/* 為替（リンク追加） */}
         {exchangeRates && (
           <div className="mt-12 glass p-8 rounded-2xl border-t-2 border-t-emerald-500/30">
             <h2 className="text-emerald-400 font-orbitron text-sm mb-6 flex items-center gap-2"><DollarSign size={18} /> EXCHANGE RATES (JPY BASE)</h2>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-8 text-center">
               {['USD', 'EUR', 'GBP', 'AUD', 'CNY', 'PHP'].map(cur => (
-                <div key={cur}>
-                  <div className="text-[10px] text-slate-500 mb-1">{cur}/JPY</div>
-                  <div className="text-xl font-orbitron font-bold text-white">{(exchangeRates.rates['JPY'] / exchangeRates.rates[cur])?.toFixed(2)}</div>
-                </div>
+                <a 
+                  key={cur} 
+                  href={`https://www.google.com/finance/quote/${cur}-JPY`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="group"
+                >
+                  <div className="text-[10px] text-slate-500 mb-1 group-hover:text-emerald-400 transition-colors">{cur}/JPY</div>
+                  <div className="text-xl font-orbitron font-bold text-white group-hover:scale-110 transition-transform inline-block">
+                    {(exchangeRates.rates['JPY'] / exchangeRates.rates[cur])?.toFixed(2)}
+                  </div>
+                  <div className="text-[8px] text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">VIEW CHART</div>
+                </a>
               ))}
             </div>
           </div>
@@ -184,6 +199,4 @@ export default function App() {
       </div>
     </div>
   );
-
 }
-
